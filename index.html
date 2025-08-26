@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IP Checker Tool</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    
+    .container {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      max-width: 500px;
+      padding: 30px;
+      text-align: center;
+      backdrop-filter: blur(10px);
+      transition: transform 0.3s ease;
+    }
+    
+    .container:hover {
+      transform: translateY(-5px);
+    }
+    
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+    
+    .status-card {
+      background: white;
+      border-radius: 12px;
+      padding: 25px;
+      margin: 25px 0;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    #status {
+      font-size: 18px;
+      color: #444;
+      min-height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .ip-display {
+      font-size: 24px;
+      font-weight: 600;
+      color: #667eea;
+      margin: 15px 0;
+      word-break: break-all;
+    }
+    
+    .loader {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(102, 126, 234, 0.3);
+      border-radius: 50%;
+      border-top-color: #667eea;
+      animation: spin 1s ease-in-out infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    .info-box {
+      background: #f8f9fa;
+      border-left: 4px solid #667eea;
+      padding: 15px;
+      text-align: left;
+      border-radius: 4px;
+      margin: 20px 0;
+      font-size: 14px;
+      color: #555;
+    }
+    
+    .button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 50px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      margin-top: 15px;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .button:hover {
+      background: #5a67d8;
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .success { color: #28a745; }
+    .error { color: #dc3545; }
+    
+    .copy-btn {
+      background: #f1f3f5;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #667eea;
+    }
+    
+    .copy-btn:hover {
+      background: #e9ecef;
+      color: #5a67d8;
+    }
+    
+    footer {
+      margin-top: 30px;
+      color: #777;
+      font-size: 14px;
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+      
+      h1 {
+        font-size: 24px;
+      }
+      
+      .ip-display {
+        font-size: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-network-wired"></i> IP Checker Tool</h1>
+    
+    <div class="status-card">
+      <div id="status">
+        <span class="loader"></span>
+        Checking your IP...
+      </div>
+      
+      <div class="ip-display" id="ip-display"></div>
+      
+      <button class="copy-btn" id="copy-btn" title="Copy IP to clipboard" style="display: none;">
+        <i class="fas fa-copy"></i>
+      </button>
+    </div>
+    
+    <div class="info-box">
+      <p><i class="fas fa-info-circle"></i> This tool detects your public IP address using a secure connection. Your IP is only used for display purposes and is not stored.</p>
+    </div>
+    
+    <button class="button" id="refresh-btn">
+      <i class="fas fa-sync-alt"></i> Check Again
+    </button>
+    
+    <footer>
+      <p>IP Checker Tool &copy; 2023 | Secure & Private</p>
+    </footer>
+  </div>
+
+  <script>
+    async function checkIP() {
+      try {
+        // Show loading state
+        document.getElementById('status').innerHTML = '<span class="loader"></span> Checking your IP...';
+        document.getElementById('ip-display').textContent = '';
+        document.getElementById('copy-btn').style.display = 'none';
+        
+        // Public IP එක browser එකෙන් ගන්න
+        let ipData = await fetch("https://api.ipify.org?format=json").then(res => res.json());
+        let ip = ipData.ip;
+        
+        // Display the IP address
+        document.getElementById('ip-display').textContent = ip;
+        document.getElementById('copy-btn').style.display = 'inline-flex';
+        
+        // Google Apps Script API එකට send කරන්න
+        let scriptUrl = "https://script.google.com/macros/s/AKfycbzbeut9w5rBxapMg3ykaLwQhT2re3UVaxqTQDEmh245cjYJuY75vuPjy_q_fvmEIcoh0Q/exec"; // Web App URL එක paste කරන්න
+        let response = await fetch(scriptUrl + "?ip=" + encodeURIComponent(ip));
+        let data = await response.json();
+        
+        // Update status with appropriate styling
+        const statusElement = document.getElementById('status');
+        statusElement.innerHTML = data.message;
+        
+        if (data.message.includes("Success")) {
+          statusElement.classList.add('success');
+          statusElement.classList.remove('error');
+          statusElement.innerHTML = '<i class="fas fa-check-circle"></i> ' + data.message;
+        } else {
+          statusElement.classList.add('error');
+          statusElement.classList.remove('success');
+          statusElement.innerHTML = '<i class="fas fa-exclamation-circle"></i> ' + data.message;
+        }
+        
+      } catch (err) {
+        document.getElementById('status').innerHTML = '<i class="fas fa-exclamation-circle error"></i> Error: ' + err.message;
+        document.getElementById('status').classList.add('error');
+      }
+    }
+
+    // Copy IP to clipboard
+    document.getElementById('copy-btn').addEventListener('click', function() {
+      const ip = document.getElementById('ip-display').textContent;
+      navigator.clipboard.writeText(ip).then(() => {
+        const statusElement = document.getElementById('status');
+        statusElement.innerHTML = '<i class="fas fa-check-circle success"></i> IP copied to clipboard!';
+        statusElement.classList.add('success');
+        statusElement.classList.remove('error');
+        
+        // Revert after 2 seconds
+        setTimeout(() => {
+          statusElement.innerHTML = '<i class="fas fa-check-circle success"></i> IP check successful';
+        }, 2000);
+      });
+    });
+    
+    // Refresh button functionality
+    document.getElementById('refresh-btn').addEventListener('click', checkIP);
+    
+    // Initial check
+    checkIP();
+  </script>
+</body>
+</html>
